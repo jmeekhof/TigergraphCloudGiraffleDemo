@@ -9,3 +9,5 @@ build
 
 # Ignore local properties
 gradle-local.properties
+
+logs

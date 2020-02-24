@@ -85,7 +85,7 @@ tasks {
     }
 
     register<GsqlTask>("dropSchema") {
-        scriptPath = "schema/drop.gsql"
+        scriptPath = "drop.gsql"
         group = schemaGroup
         description = "Runs gsql to drop the database schema"
     }
