@@ -96,6 +96,12 @@ tasks {
         description = "Creates loading job for loading organisations"
     }
 
+    register<GsqlTask>("createLoadFinanciers") {
+        scriptPath = "load/create/loadFinanciers.gsql"
+        group = loadingGroup
+        description = "Creates loading job for loading financiers"
+    }
+
     register<HttpTask>("loadOrganisation") {
         group = loadingGroup
         description = "Load data via the REST++ endpoint"
@@ -111,6 +117,26 @@ tasks {
             )
             httpConfig.request.setContentType("text/csv")
             val stream = File("data/Organisations.csv").inputStream()
+            httpConfig.request.setBody(stream)
+        }
+
+    }
+
+    register<HttpTask>("loadFinanciers") {
+        group = loadingGroup
+        description = "Load data via the REST++ endpoint"
+        post { httpConfig ->
+            httpConfig.request.uri.setPath("/ddl/${gGraphName}")
+            httpConfig.request.uri.setQuery(
+                    mapOf(
+                            "tag" to "loadFinanciers",
+                            "filename" to "f1",
+                            "sep" to ",",
+                            "eol" to "\n"
+                    )
+            )
+            httpConfig.request.setContentType("text/csv")
+            val stream = File("data/Financiers.csv").inputStream()
             httpConfig.request.setBody(stream)
         }
 
