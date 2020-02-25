@@ -90,19 +90,20 @@ tasks {
         description = "Runs gsql to drop the database schema"
     }
 
-    register<GsqlTask>("createLoadPartType") {
-        scriptPath = "load/create/load_part_type.gsql"
+    register<GsqlTask>("createLoadOrganisation") {
+        scriptPath = "load/create/loadOrganisation.gsql"
         group = loadingGroup
-        description = "Creates loading job for loading part types"
+        description = "Creates loading job for loading organisations"
     }
 
-    register<HttpTask>("loadPartType") {
+    register<HttpTask>("loadOrganisation") {
+        group = loadingGroup
         description = "Load data via the REST++ endpoint"
         post { httpConfig ->
             httpConfig.request.uri.setPath("/ddl/${gGraphName}")
             httpConfig.request.uri.setQuery(
                     mapOf(
-                            "tag" to "loadPartType",
+                            "tag" to "loadOrganisation",
                             "filename" to "f1",
                             "sep" to ",",
                             "eol" to "\n"
@@ -115,7 +116,12 @@ tasks {
 
     }
 
-    val getToken by registering(GsqlTokenTask::class){ }
+    val getToken by registering(GsqlTokenTask::class){
+        uriScheme.set(tigergraph.uriScheme.get())
+        host.set(tigergraph.serverName.get())
+        defaultPort.set(tigergraph.restPort.get())
+    }
+
 
     register<GsqlTokenDeleteTask>("deleteToken") { }
 

@@ -1,0 +1,9 @@
+drop job loadOrganisation
+
+create loading job loadOrganisation for graph @graphname@ {
+
+    define filename f1;
+    define header org = "ID","Organisation";
+
+    load f1 to VERTEX organisation VALUES ($"ID", $"Organisation") using header="false", user_defined_header="org";
+}
