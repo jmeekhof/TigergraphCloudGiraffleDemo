@@ -1,0 +1,15 @@
+//select * from financier-(shareholding)->organisation where from_id=="Cambiar Investors LLC"
+//select * from financier-(shareholding)->organisation where from_id=="Banco Alfa de Investimento S.A."
+
+USE GRAPH @graphname@
+
+drop QUERY get_organisation
+
+CREATE QUERY get_organisation(VERTEX<organisation> org) FOR GRAPH @graphname@{
+  Start = {org};
+
+  
+  PRINT Start;
+}
+
+INSTALL QUERY get_organisation

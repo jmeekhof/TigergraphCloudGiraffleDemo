@@ -5,5 +5,5 @@ create loading job loadFinanciers for graph @graphname@ {
     define filename f1;
     define header fin = "ID","Financiers";
 
-    load f1 to VERTEX financier VALUES ($"ID", $"Financiers") using header="false", user_defined_header="fin";
+    load f1 to VERTEX financier VALUES ($"Financiers",$"Financiers") using header="false", user_defined_header="fin";
 }

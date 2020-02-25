@@ -1,0 +1,6 @@
+drop job loadShareholdings
+
+create loading job loadShareholdings for graph @graphname@ {
+    define filename f1;
+    load f1 to EDGE shareholding VALUES ($4, $1) using header="false";
+}

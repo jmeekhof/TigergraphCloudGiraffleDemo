@@ -2,10 +2,7 @@ USE GRAPH @graphname@
 
 DROP job ALL
 
-DROP GRAPH @graphname@
-
 USE GLOBAL
-
 DROP VERTEX organisation, financier
 DROP EDGE shareholding, bondholding, loan
-
+DROP GRAPH @graphname@
