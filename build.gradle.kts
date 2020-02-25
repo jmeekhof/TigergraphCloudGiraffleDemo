@@ -167,3 +167,15 @@ tasks {
         dependsOn(getToken)
     }
 }
+
+val allCreateLoad by tasks.registering {
+    group = loadingGroup
+    description = "Creates all load rules -- as long as they all start with \"createLoad\"."
+}
+
+allCreateLoad {
+    dependsOn(provider {
+            tasks.filter{ task -> task.name.startsWith("createLoad") }
+    })
+}
+
