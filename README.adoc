@@ -26,7 +26,7 @@ openssl x509 -text > my-cert.txt
 
 Finally, you'll need to generatet a secret. Easiest way I know:
 
-`gradle --consol=plain gsqlShell`
+`gradle --console=plain gsqlShell`
 
 Then
 ....

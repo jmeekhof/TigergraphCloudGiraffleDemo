@@ -1,3 +1,4 @@
+SET exit_on_error = FALSE
 CREATE VERTEX organisation(PRIMARY_ID id INT, name STRING)
 CREATE VERTEX financier(PRIMARY_ID id INT, name STRING)
 
