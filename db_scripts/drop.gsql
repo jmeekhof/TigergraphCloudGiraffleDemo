@@ -1,9 +1,0 @@
-USE GRAPH @graphname@
-
-DROP GRAPH @graphname@
-
-USE GLOBAL
-
-DROP EDGE shareholder
-DROP VERTEX organisation
-DROP VERTEX financier

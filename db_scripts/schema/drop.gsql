@@ -1,0 +1,10 @@
+USE GRAPH @graphname@
+
+DROP job ALL
+
+DROP GRAPH @graphname@
+
+USE GLOBAL
+
+DROP EDGE shareholding, bondholding, loan
+DROP VERTEX organisation, financier

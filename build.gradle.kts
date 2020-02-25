@@ -14,11 +14,11 @@ plugins {
     id("io.github.http-builder-ng.http-plugin") version "0.1.1"
 }
 
-repositories {     
-    jcenter() 
-}  
+repositories {
+    jcenter()
+}
 
-http { 
+http {
     config{
         it.request.setUri("${gHostUriType}://${gHost}:${gRestPort}")
         it.request.headers["Authorization"] = "Bearer ${tigergraph.token.get()}" // <2.1>
@@ -78,7 +78,7 @@ tasks {
     }
 
     register<GsqlTask>("createSchema") {
-        scriptPath = "schema/create.gsql"
+        scriptPath = "schema/schema.gsql"
         useGlobal = true
         group = schemaGroup
         description = "Runs gsql to create a schema"
@@ -90,19 +90,26 @@ tasks {
         description = "Runs gsql to drop the database schema"
     }
 
-    register<GsqlTask>("createLoadPartType") {
-        scriptPath = "load/create/load_part_type.gsql"
+    register<GsqlTask>("createLoadOrganisation") {
+        scriptPath = "load/create/loadOrganisation.gsql"
         group = loadingGroup
-        description = "Creates loading job for loading part types"
+        description = "Creates loading job for loading organisations"
     }
 
-    register<HttpTask>("loadPartType") { 
+    register<GsqlTask>("createLoadFinanciers") {
+        scriptPath = "load/create/loadFinanciers.gsql"
+        group = loadingGroup
+        description = "Creates loading job for loading financiers"
+    }
+
+    register<HttpTask>("loadOrganisation") {
+        group = loadingGroup
         description = "Load data via the REST++ endpoint"
         post { httpConfig ->
             httpConfig.request.uri.setPath("/ddl/${gGraphName}")
             httpConfig.request.uri.setQuery(
                     mapOf(
-                            "tag" to "loadPartType",
+                            "tag" to "loadOrganisation",
                             "filename" to "f1",
                             "sep" to ",",
                             "eol" to "\n"
@@ -115,7 +122,32 @@ tasks {
 
     }
 
-    val getToken by registering(GsqlTokenTask::class){ }
+    register<HttpTask>("loadFinanciers") {
+        group = loadingGroup
+        description = "Load data via the REST++ endpoint"
+        post { httpConfig ->
+            httpConfig.request.uri.setPath("/ddl/${gGraphName}")
+            httpConfig.request.uri.setQuery(
+                    mapOf(
+                            "tag" to "loadFinanciers",
+                            "filename" to "f1",
+                            "sep" to ",",
+                            "eol" to "\n"
+                    )
+            )
+            httpConfig.request.setContentType("text/csv")
+            val stream = File("data/Financiers.csv").inputStream()
+            httpConfig.request.setBody(stream)
+        }
+
+    }
+
+    val getToken by registering(GsqlTokenTask::class){
+        uriScheme.set(tigergraph.uriScheme.get())
+        host.set(tigergraph.serverName.get())
+        defaultPort.set(tigergraph.restPort.get())
+    }
+
 
     register<GsqlTokenDeleteTask>("deleteToken") { }
 
@@ -135,3 +167,15 @@ tasks {
         dependsOn(getToken)
     }
 }
+
+val allCreateLoad by tasks.registering {
+    group = loadingGroup
+    description = "Creates all load rules -- as long as they all start with \"createLoad\"."
+}
+
+allCreateLoad {
+    dependsOn(provider {
+            tasks.filter{ task -> task.name.startsWith("createLoad") }
+    })
+}
+
