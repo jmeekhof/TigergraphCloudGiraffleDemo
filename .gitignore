@@ -11,3 +11,4 @@ build
 gradle-local.properties
 
 logs
+.DS_Store
