@@ -14,11 +14,11 @@ plugins {
     id("io.github.http-builder-ng.http-plugin") version "0.1.1"
 }
 
-repositories {     
-    jcenter() 
-}  
+repositories {
+    jcenter()
+}
 
-http { 
+http {
     config{
         it.request.setUri("${gHostUriType}://${gHost}:${gRestPort}")
         it.request.headers["Authorization"] = "Bearer ${tigergraph.token.get()}" // <2.1>
@@ -78,7 +78,7 @@ tasks {
     }
 
     register<GsqlTask>("createSchema") {
-        scriptPath = "schema/create.gsql"
+        scriptPath = "schema/schema.gsql"
         useGlobal = true
         group = schemaGroup
         description = "Runs gsql to create a schema"
@@ -96,7 +96,7 @@ tasks {
         description = "Creates loading job for loading part types"
     }
 
-    register<HttpTask>("loadPartType") { 
+    register<HttpTask>("loadPartType") {
         description = "Load data via the REST++ endpoint"
         post { httpConfig ->
             httpConfig.request.uri.setPath("/ddl/${gGraphName}")

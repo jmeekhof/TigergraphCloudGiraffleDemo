@@ -2,7 +2,7 @@ CREATE VERTEX organisation(PRIMARY_ID id INT, name STRING)
 CREATE VERTEX financier(PRIMARY_ID id INT, name STRING)
 
 CREATE DIRECTED EDGE shareholding (FROM financier, TO organisation)
-CREATE DIRECTED EDGE bondholding (FROM financier, TO organisation) 
-CREATE DIRECTED EDGE loan (FROM financier, TO organisation) 
+CREATE DIRECTED EDGE bondholding (FROM financier, TO organisation)
+CREATE DIRECTED EDGE loan (FROM financier, TO organisation)
 
-CREATE GRAPH deforestation(*) 
+CREATE GRAPH @graphname@(organisation, financier, shareholding, bondholding, loan)
