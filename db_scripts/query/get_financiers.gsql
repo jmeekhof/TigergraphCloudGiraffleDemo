@@ -1,0 +1,10 @@
+DROP QUERY get_financiers
+
+CREATE QUERY get_financiers(VERTEX<organisation> org) FOR GRAPH @graphname@ {
+    S1 = {financier.*};
+    result = select f from S1: f - ( shareholding:e ) -> organisation:s
+    where s == org;
+    print result;
+}
+
+INSTALL QUERY get_financiers
