@@ -3,13 +3,13 @@
 
 USE GRAPH @graphname@
 
-drop QUERY get_organisation
+drop QUERY get_financiers
 
-CREATE QUERY get_organisation(VERTEX<organisation> org) FOR GRAPH @graphname@{
-  Start = {org};
-
-  
-  PRINT Start;
+CREATE QUERY get_financiers(VERTEX<organisation> org) FOR GRAPH deforestation {
+    S1 = {financier.*};
+    result = select f from S1: f - ( shareholding:e ) -> organisation:s
+    where s == org;
+    print result;
 }
 
-INSTALL QUERY get_organisation
+install QUERY get_financiers

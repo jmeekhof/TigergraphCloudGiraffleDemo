@@ -211,3 +211,13 @@ allCreateLoad {
     })
 }
 
+val allLoad by tasks.registering{
+    group = loadingGroup
+    description = "load all  data -- as long as they start with \"load\"."
+}
+
+allLoad {
+    dependsOn(provider{
+        tasks.filter{ task -> task.name.startsWith("load")}
+    })
+}
