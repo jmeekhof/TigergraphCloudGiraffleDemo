@@ -43,6 +43,7 @@ val tokenMap: LinkedHashMap<String, String> = linkedMapOf(
 
 val schemaGroup: String = "Schema Tasks"
 val loadingGroup: String = "Loading Tasks"
+val queryGroup: String = "Query Tasks"
 
 tigergraph {
     adminPassword.set(gAdminPassword)
@@ -108,10 +109,16 @@ tasks {
         description = "Creates loading job for loading shareholdings"
     }
 
-   register<GsqlTask>("createQueries") {
+   register<GsqlTask>("createQueryGetOrganisation") {
         scriptPath = "query/get_relationships.gsql"
-        group = loadingGroup
+        group = queryGroup
         description = "Creates query to get relationships"
+    }
+
+    register<GsqlTask>("createQueryGetFinanciers") {
+        scriptPath = "query/get_financiers.gsql"
+        group = queryGroup
+        description = "Creates query to get financiers"
     }
 
     register<HttpTask>("loadOrganisation") {
