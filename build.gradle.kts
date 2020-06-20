@@ -1,15 +1,17 @@
-import com.optum.giraffle.tasks.*
-import com.optum.giraffle.*
+import com.optum.giraffle.UriScheme
+import com.optum.giraffle.tasks.GsqlTask
+import com.optum.giraffle.tasks.GsqlTokenDeleteTask
+import com.optum.giraffle.tasks.GsqlTokenTask
 import io.github.httpbuilderng.http.HttpTask // <1>
 
 buildscript {
-    this.dependencies{
-        this.classpath("com.opencsv:opencsv:3.8")
+    dependencies {
+        classpath("com.opencsv:opencsv:3.8")
     }
 }
 
 plugins {
-    id("com.optum.giraffle") version "1.3.3"
+    id("com.optum.giraffle") version "1.3.4.1"
     id("net.saliman.properties") version "1.5.1"
     id("io.github.http-builder-ng.http-plugin") version "0.1.1"
 }
@@ -18,9 +20,13 @@ repositories {
     jcenter()
 }
 
+dependencies {
+    gsqlRuntime("com.tigergraph.client:gsql_client:2.6.0")
+}
+
 http {
-    config{
-        it.request.setUri("${gHostUriType}://${gHost}:${gRestPort}")
+    config {
+        it.request.setUri("$gHostUriType://$gHost:$gRestPort")
         it.request.headers["Authorization"] = "Bearer ${tigergraph.token.get()}" // <2.1>
     }
 }
@@ -39,7 +45,7 @@ val gUserName: String by project
 
 val tokenMap: LinkedHashMap<String, String> = linkedMapOf(
     "graphname" to gGraphName
-    )
+)
 
 val schemaGroup: String = "Schema Tasks"
 val loadingGroup: String = "Loading Tasks"
@@ -69,13 +75,19 @@ tigergraph {
 
 tasks {
     wrapper {
-        gradleVersion = "6.0.1"
+        gradleVersion = "6.5"
     }
 
     register<GsqlTask>("showSchema") {
         scriptCommand = "ls"
         group = schemaGroup
         description = "Run simple `ls` command to display vertices, edges, and jobs for current graph"
+    }
+
+    register<GsqlTask>("nukeSchema") {
+        scriptCommand = "drop all"
+        group = schemaGroup
+        description = "Executes a DROP ALL"
     }
 
     register<GsqlTask>("createSchema") {
@@ -89,6 +101,7 @@ tasks {
         scriptPath = "drop.gsql"
         group = schemaGroup
         description = "Runs gsql to drop the database schema"
+        useGlobal = true
     }
 
     register<GsqlTask>("createLoadOrganisation") {
@@ -121,44 +134,58 @@ tasks {
         description = "Creates query to get financiers"
     }
 
+    register<HttpTask>("getFinanciers") {
+        get { httpConfig ->
+            httpConfig.request.uri.setPath("/query/$gGraphName/get_financiers")
+            httpConfig.request.uri.setQuery(
+                mapOf(
+                    "org" to "Trusts"
+                )
+            )
+            httpConfig.response.success { fs, x ->
+                println(fs)
+                println(x)
+                println("Success")
+            }
+        }
+    }
+
     register<HttpTask>("loadOrganisation") {
         group = loadingGroup
         description = "Load data via the REST++ endpoint"
         post { httpConfig ->
-            httpConfig.request.uri.setPath("/ddl/${gGraphName}")
+            httpConfig.request.uri.setPath("/ddl/$gGraphName")
             httpConfig.request.uri.setQuery(
-                    mapOf(
-                            "tag" to "loadOrganisation",
-                            "filename" to "f1",
-                            "sep" to ",",
-                            "eol" to "\n"
-                    )
+                mapOf(
+                    "tag" to "loadOrganisation",
+                    "filename" to "f1",
+                    "sep" to ",",
+                    "eol" to "\n"
+                )
             )
             httpConfig.request.setContentType("text/csv")
             val stream = File("data/Organisations.csv").inputStream()
             httpConfig.request.setBody(stream)
         }
-
     }
 
     register<HttpTask>("loadFinanciers") {
         group = loadingGroup
         description = "Load data via the REST++ endpoint"
         post { httpConfig ->
-            httpConfig.request.uri.setPath("/ddl/${gGraphName}")
+            httpConfig.request.uri.setPath("/ddl/$gGraphName")
             httpConfig.request.uri.setQuery(
-                    mapOf(
-                            "tag" to "loadFinanciers",
-                            "filename" to "f1",
-                            "sep" to ",",
-                            "eol" to "\n"
-                    )
+                mapOf(
+                    "tag" to "loadFinanciers",
+                    "filename" to "f1",
+                    "sep" to ",",
+                    "eol" to "\n"
+                )
             )
             httpConfig.request.setContentType("text/csv")
             val stream = File("data/Financiers.csv").inputStream()
             httpConfig.request.setBody(stream)
         }
-
     }
 
     register<HttpTask>("loadShareholdings") {
@@ -167,35 +194,33 @@ tasks {
         post { httpConfig ->
             httpConfig.request.uri.setPath("/ddl/${gGraphName}")
             httpConfig.request.uri.setQuery(
-                    mapOf(
-                            "tag" to "loadShareholdings",
-                            "filename" to "f1",
-                            "sep" to ",",
-                            "eol" to "\n"
-                    )
+                mapOf(
+                    "tag" to "loadShareholdings",
+                    "filename" to "f1",
+                    "sep" to ",",
+                    "eol" to "\n"
+                )
             )
             httpConfig.request.setContentType("text/csv")
             val stream = File("data/Shares.csv").inputStream()
             httpConfig.request.setBody(stream)
         }
-
     }
 
-    val getToken by registering(GsqlTokenTask::class){
+    val getToken by registering(GsqlTokenTask::class) {
         uriScheme.set(tigergraph.uriScheme.get())
         host.set(tigergraph.serverName.get())
         defaultPort.set(tigergraph.restPort.get())
     }
 
-
-    register<GsqlTokenDeleteTask>("deleteToken") { }
+    register<GsqlTokenDeleteTask>("deleteToken") {}
 
     register<HttpTask>("getVersion") {
         description = "Get the server version from Tigergraph"
         get {
             it.request.uri.setPath("/version")
             it.response.success { fs, x ->
-                println(fs )
+                println(fs)
                 println(x)
                 println("Success")
             }
@@ -213,18 +238,22 @@ val allCreateLoad by tasks.registering {
 }
 
 allCreateLoad {
-    dependsOn(provider {
-            tasks.filter{ task -> task.name.startsWith("createLoad") }
-    })
+    dependsOn(
+        provider {
+            tasks.filter { task -> task.name.startsWith("createLoad") }
+        }
+    )
 }
 
-val allLoad by tasks.registering{
+val allLoad by tasks.registering {
     group = loadingGroup
     description = "load all  data -- as long as they start with \"load\"."
 }
 
 allLoad {
-    dependsOn(provider{
-        tasks.filter{ task -> task.name.startsWith("load")}
-    })
+    dependsOn(
+        provider {
+            tasks.filter { task -> task.name.startsWith("load") }
+        }
+    )
 }
