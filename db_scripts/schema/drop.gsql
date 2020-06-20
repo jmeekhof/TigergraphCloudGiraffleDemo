@@ -1,6 +1,11 @@
 USE GRAPH @graphname@
+drop job loadFinanciers
+drop job loadOrganisation
+drop job loadShareholdings
+// DROP job ALL
 
-DROP job ALL
+// drop query all
+drop query get_financiers
 
 USE GLOBAL
 DROP VERTEX organisation, financier
