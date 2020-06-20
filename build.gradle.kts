@@ -3,6 +3,7 @@ import com.optum.giraffle.tasks.GsqlTask
 import com.optum.giraffle.tasks.GsqlTokenDeleteTask
 import com.optum.giraffle.tasks.GsqlTokenTask
 import io.github.httpbuilderng.http.HttpTask // <1>
+import org.gradle.util.Path.path
 
 buildscript {
     dependencies {
@@ -254,6 +255,37 @@ allLoad {
     dependsOn(
         provider {
             tasks.filter { task -> task.name.startsWith("load") }
+        }
+    )
+}
+
+var srcDir: File? = null
+val collection = layout.files({
+    srcDir?.listFiles()
+})
+srcDir = file("${tigergraph.scriptDir.get()}/query")
+println("Contents of ${srcDir?.name}")
+collection.map {
+    relativePath(it)
+}.forEachIndexed { i, item ->
+    println("$i: $item")
+    val gsqlScript = file(item).relativeTo(file(tigergraph.scriptDir.get())).toString()
+    tasks.register<GsqlTask>("dynQuery$i") {
+        scriptPath = gsqlScript
+        group = queryGroup
+        description = "Dynamic Query for file $gsqlScript"
+    }
+}
+
+val allDynQuery by tasks.registering {
+    group = queryGroup
+    description = "Runs all dynamically created loading tasks"
+}
+
+allDynQuery {
+    dependsOn(
+        provider {
+            tasks.filter { task -> task.name.startsWith("dynQuery") }
         }
     )
 }
